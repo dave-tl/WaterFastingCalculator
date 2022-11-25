@@ -4,7 +4,10 @@ import time
 from colorama import Fore, Back, Style
 
 
+
 class Interface:
+
+
     def onboarding(ErrorMessage=False):
         print(("*") * 60)
         print("========== WELCOME TO WATER FAST CALCULATOR ==========")
@@ -28,8 +31,9 @@ class Interface:
             Interface.onboarding(ErrorMessage=True)
             print("\nInput must be a above mentioned letter\n")
         if EnterLetter == "c":
-            print(Fore.LIGHTWHITE_EX + "\nBasic data is required for calculations\n" + Fore.LIGHTWHITE_EX)
-            DataCheck.basic_data_check()
+            basic_data_check()
+
+
 
 
 """ <<<Onboarding>>>
@@ -38,28 +42,46 @@ class Interface:
 """
 
 
-class BasicData:
-    def range_check(num_var, range_s, range_e, message):
+class InputValidation:
+    # USED FOR CHECKING IF SOME VARIABLE IS WITHIN LIST
+
+    def str_check(option1=None, option2=None, option3=None, option4=None, unit=None):
+        user_input = input(Fore.LIGHTWHITE_EX+"input " + unit + " : "+Fore.RESET)
+        user_input_lower = user_input.lower()
+        if user_input_lower:
+            while True:
+                if user_input_lower in [str(option1), option2, option3, option4]:
+                    return str(user_input_lower)
+                else:
+                    print(Fore.RED + "\nPlease input valid " + unit + "\n" + ("*") * 60+Fore.RESET)
+                    InputValidation.str_check(unit=unit, option1=option1, option2=option2, option3=option3,
+                                        option4=option4)
+                    break
+        else:
+            print(Fore.RED + "\nfield can't be empty\n" + ("*") * 60+Fore.RESET)
+            InputValidation.str_check(unit=unit, option1=option1, option2=option2, option3=option3,
+                                option4=option4)
+    def r_check(num_var, range_s, range_e, message):
         if num_var.isnumeric():
             while True:
                 if int(num_var) in range(range_s, range_e):
                     return num_var
                 else:
-                    return (Fore.RED + "\nPlease input valid " + message + "\n" + ("*") * 60)
+                    return (Fore.RED + "\nPlease input valid " + message + "\n" + ("*") * 60+Fore.RESET)
         else:
-            return (Fore.RED + "\nInput must be a number\n" + ("*") * 60)
+            return (Fore.RED + "\nInput must be a number\n" + ("*") * 60+Fore.RESET)
 
-    def check(unit_name, range_min, range_max, suffix=None):
+    def range_check(unit_name, range_min, range_max, suffix=None):
         # User input field
-        user_input = input(Fore.LIGHTWHITE_EX + "input " + unit_name + " " + suffix + " : ")
+        user_input = input(Fore.LIGHTWHITE_EX + "input " + unit_name + " " + suffix + " : "+Fore.RESET)
         user_unit = (
-            BasicData.range_check(num_var=user_input, range_s=range_min, range_e=range_max, message=unit_name))
+            InputValidation.r_check(num_var=user_input, range_s=range_min, range_e=range_max, message=unit_name))
         # Loops until number is within range
         while user_unit != user_input:
             print(user_unit)
-            user_input = input(Fore.LIGHTWHITE_EX + "input " + unit_name + " " + suffix + " : ")
-            user_unit = (BasicData.range_check(num_var=user_input, range_s=range_min, range_e=range_max,
-                                               message=unit_name))
+            user_input = input(Fore.LIGHTWHITE_EX + "input " + unit_name + " " + suffix + " : "+Fore.RESET)
+            user_unit = (InputValidation.r_check(num_var=user_input, range_s=range_min, range_e=range_max,
+                                                 message=unit_name))
 
         # returns user input
         else:
@@ -70,27 +92,30 @@ class BasicData:
 
 
 ###SKIP###
-class DataCheck():
-    def where_json(file_name):
-        return os.path.exists(file_name)
+def basic_data_check():
+    if where_json('data.json'):
+        pass
 
-    def basic_data_check():
-        if DataCheck.where_json('data.json'):
-            pass
+    else:
+        print(Fore.LIGHTWHITE_EX + "\nBasic data is required for calculations\n" + Fore.RESET)
+        """Create local data dict"""
+        data = {
+            'user_gender': InputValidation.str_check(unit="gender", option1="male", option2="female", option3="1",
+                                                   option4="2"),
+            'user_weight': InputValidation.range_check(unit_name="weight", range_min=50, range_max=200, suffix="in kg"),
+            'user_height': InputValidation.range_check(unit_name="height", range_min=100, range_max=250, suffix="in cm"),
+            'user_goal': InputValidation.range_check(unit_name="goal", range_min=1, range_max=30, suffix="in days")
+        }
 
-        else:
+        """Create and save data to data.json"""
 
-            """Create local data dict"""
-            data = {
-                'user_weight': BasicData.check(unit_name="weight", range_min=50, range_max=200, suffix="in kg"),
-                'user_height': BasicData.check(unit_name="height", range_min=100, range_max=250, suffix="in cm"),
-                'user_goal': BasicData.check(unit_name="goal", range_min=1, range_max=30, suffix="in days")
-            }
+        with open('data.json', 'w') as outfile:
+            json.dump(data, outfile)
 
-            """Create and save data to data.json"""
 
-            with open('data.json', 'w') as outfile:
-                json.dump(data, outfile)
+
+def where_json(file_name):
+    return os.path.exists(file_name)
 
 
 def main():
